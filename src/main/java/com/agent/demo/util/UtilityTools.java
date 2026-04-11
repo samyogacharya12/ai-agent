@@ -12,4 +12,10 @@ public class UtilityTools {
     public String currentTime() {
         return LocalDateTime.now().toString();
     }
+
+    @Tool(description = "Echo back a short backend status message")
+    public String backendStatus() {
+        return "Spring Boot service is running normally.";
+    }
+
 }

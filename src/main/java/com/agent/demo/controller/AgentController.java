@@ -1,5 +1,6 @@
 package com.agent.demo.controller;
 
+import com.agent.demo.dto.ParamDto;
 import com.agent.demo.service.AssistantAgent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +17,8 @@ public class AgentController {
     private AssistantAgent assistantAgent;
 
     @PostMapping("/ask")
-    public String ask(@RequestBody String input) {
-        return assistantAgent.run(input);
+    public String ask(@RequestBody ParamDto paramDto) {
+        return assistantAgent.run(paramDto.getConversationId(),
+                paramDto.getInput());
     }
 }
