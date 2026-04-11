@@ -1,34 +1,33 @@
 package com.agent.demo.service;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PlannerAgent {
+public class MemoryTestAgent {
 
-    private final ChatMemory chatMemory;
 
     private final ChatClient chatClient;
+    private final ChatMemory chatMemory;
 
-    public PlannerAgent(ChatClient.Builder builder,
-                        ChatMemory chatMemory) {
+    public MemoryTestAgent(ChatClient.Builder builder, ChatMemory chatMemory) {
         this.chatClient = builder.build();
         this.chatMemory = chatMemory;
     }
 
-    public String createPlan(String conversationId, String userInput) {
+    public String run(String conversationId, String input) {
         return chatClient.prompt()
                 .system("""
-                        You are a planning agent.
-                        Use previous conversation context if available.
-                        Your job is only to create a short execution plan.
-                        Do not answer the user's question directly.
-                        If the request is simple, create a minimal plan.
+                        You are a helpful assistant.
+                        
+                        You MUST use previous conversation context.
+                        If the user previously told their name, always use it.
+                        
+                        Never say you don't know if it exists in memory.
                         """)
-                .user(userInput)
+                .user(input)
                 .advisors(
                         PromptChatMemoryAdvisor.builder(chatMemory)
                                 .conversationId(conversationId)
@@ -37,4 +36,5 @@ public class PlannerAgent {
                 .call()
                 .content();
     }
+
 }

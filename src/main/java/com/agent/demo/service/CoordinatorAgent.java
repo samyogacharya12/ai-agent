@@ -16,7 +16,7 @@ public class CoordinatorAgent {
     }
 
     public AgentResponse run(String conversationId, String userInput) {
-        String plan = plannerAgent.createPlan(userInput);
+        String plan = plannerAgent.createPlan(conversationId, userInput);
         String answer = executorAgent.execute(conversationId,userInput, plan);
         return new AgentResponse(plan, answer);
     }
