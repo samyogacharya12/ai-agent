@@ -1,7 +1,9 @@
 package com.agent.demo.controller;
 
+import com.agent.demo.dto.AgentResponse;
 import com.agent.demo.dto.ParamDto;
 import com.agent.demo.service.AssistantAgent;
+import com.agent.demo.service.CoordinatorAgent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,13 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/agent")
 public class AgentController {
 
-
     @Autowired
-    private AssistantAgent assistantAgent;
+    private CoordinatorAgent coordinatorAgent;
 
     @PostMapping("/ask")
-    public String ask(@RequestBody ParamDto paramDto) {
-        return assistantAgent.run(paramDto.getConversationId(),
+    public AgentResponse ask(@RequestBody ParamDto paramDto) {
+        return coordinatorAgent.run(paramDto.getConversationId(),
                 paramDto.getInput());
     }
 }
