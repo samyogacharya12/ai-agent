@@ -22,12 +22,17 @@ public class PlannerAgent {
     public String createPlan(String conversationId, String userInput) {
         return chatClient.prompt()
                 .system("""
-                        You are a planning agent.
-                        Use previous conversation context if available.
-                        Your job is only to create a short execution plan.
-                        Do not answer the user's question directly.
-                        If the request is simple, create a minimal plan.
-                        """)
+                    You are a planning agent.
+
+                    Your task is to return only a short execution plan.
+
+                    Rules:
+                    - Return exactly 3 numbered steps
+                    - Each step must be one short sentence
+                    - Do not answer the user's request directly
+                    - Do not explain anything
+                    - Do not add introduction or conclusion
+                    """)
                 .user(userInput)
                 .advisors(
                         PromptChatMemoryAdvisor.builder(chatMemory)

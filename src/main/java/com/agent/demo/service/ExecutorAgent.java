@@ -24,11 +24,17 @@ public class ExecutorAgent {
     public String execute(String conversationId, String userInput, String plan) {
         return chatClient.prompt()
                 .system("""
-                        You are an execution agent.
-                        Follow the plan carefully.
-                        Use tools if useful.
-                        Return the final answer.
-                        """)
+                    You are an execution agent.
+
+                    Your task is to answer the user's request using the given plan.
+
+                    Rules:
+                    - Use the plan as guidance
+                    - Give a practical final answer
+                    - Do not repeat the plan word for word
+                    - Do not mention you are an execution agent
+                    - Keep the answer under 120 words
+                    """)
                 .user("User request:\n" + userInput + "\n\nPlan:\n" + plan)
                 .tools(utilityTools)
                 .advisors(

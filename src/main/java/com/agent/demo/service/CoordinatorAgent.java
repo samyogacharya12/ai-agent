@@ -9,15 +9,20 @@ public class CoordinatorAgent {
 
     private final PlannerAgent plannerAgent;
     private final ExecutorAgent executorAgent;
+    private final ReviewerAgent reviewerAgent;
 
-    public CoordinatorAgent(PlannerAgent plannerAgent, ExecutorAgent executorAgent) {
+    public CoordinatorAgent(PlannerAgent plannerAgent,
+                            ExecutorAgent executorAgent,
+                            ReviewerAgent reviewerAgent) {
         this.plannerAgent = plannerAgent;
         this.executorAgent = executorAgent;
+        this.reviewerAgent = reviewerAgent;
     }
 
     public AgentResponse run(String conversationId, String userInput) {
         String plan = plannerAgent.createPlan(conversationId, userInput);
         String answer = executorAgent.execute(conversationId,userInput, plan);
-        return new AgentResponse(plan, answer);
+        String finalAnswer = reviewerAgent.review(conversationId, userInput, answer);
+        return new AgentResponse(plan, finalAnswer);
     }
 }
