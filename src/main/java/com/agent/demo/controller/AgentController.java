@@ -3,6 +3,7 @@ package com.agent.demo.controller;
 import com.agent.demo.dto.AgentResponse;
 import com.agent.demo.dto.ParamDto;
 
+import com.agent.demo.service.AgentService;
 import com.agent.demo.service.CoordinatorAgent;
 import com.agent.demo.service.MemoryTestAgent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +22,19 @@ public class AgentController {
     @Autowired
     private MemoryTestAgent memoryTestAgent;
 
+    @Autowired
+    private AgentService agentService;
+
     @PostMapping("/ask")
     public AgentResponse ask(@RequestBody ParamDto paramDto) {
         return coordinatorAgent.run(paramDto.getConversationId(),
                 paramDto.getInput());
+    }
+
+
+    @PostMapping("/document/ask")
+    public String document(@RequestBody ParamDto paramDto) {
+        return agentService.ask(paramDto.getInput());
     }
 
     @PostMapping("/memory/ask")
