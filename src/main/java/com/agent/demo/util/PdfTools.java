@@ -1,5 +1,7 @@
 package com.agent.demo.util;
 
+
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.ai.tool.annotation.Tool;
@@ -14,7 +16,7 @@ public class PdfTools {
 
     @Tool(description = "Read text content from a PDF file path.")
     public String readPdfFile(String filePath) {
-        try (PDDocument document = PDDocument.load(new File(filePath))) {
+        try (PDDocument document = Loader.loadPDF(new File(filePath))) {
             PDFTextStripper stripper = new PDFTextStripper();
             return stripper.getText(document);
         } catch (IOException e) {

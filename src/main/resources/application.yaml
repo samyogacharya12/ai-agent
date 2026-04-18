@@ -1,8 +1,17 @@
 spring:
-  ai:
-    openai:
-      base-url: http://localhost:12434/engines
-      api-key: test
-      chat:
-        options:
-          model: ai/smollm2:360M-Q4_K_M
+    ai:
+        model:
+            chat: ollama
+            embedding: ollama
+
+        ollama:
+            base-url: http://localhost:11434
+
+            chat:
+                options:
+                    model: smollm2:360m-instruct-q4_K_M
+                    temperature: 0.2
+
+            embedding:
+                options:
+                    model: all-minilm
