@@ -9,4 +9,6 @@ public class ParamDto {
     private String conversationId;
 
     private String input;
+
+    private String question;
 }
