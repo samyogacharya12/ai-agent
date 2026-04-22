@@ -26,9 +26,8 @@ public class AgentController {
     private AgentService agentService;
 
     @PostMapping("/ask")
-    public AgentResponse ask(@RequestBody ParamDto paramDto) {
-        return coordinatorAgent.run(paramDto.getConversationId(),
-                paramDto.getInput());
+    public String ask(@RequestBody ParamDto paramDto) {
+        return agentService.ask(paramDto.getInput());
     }
 
 

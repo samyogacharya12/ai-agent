@@ -15,3 +15,12 @@ spring:
             embedding:
                 options:
                     model: all-minilm
+
+        mcp:
+            client:
+                enabled: true
+                name: rag-mcp-client
+                version: 1.0.0
+                transport:
+                    type: STREAMABLE
+                    url: http://localhost:8081
