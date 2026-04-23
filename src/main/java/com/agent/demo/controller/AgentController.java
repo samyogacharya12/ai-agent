@@ -27,13 +27,14 @@ public class AgentController {
 
     @PostMapping("/ask")
     public String ask(@RequestBody ParamDto paramDto) {
-        return agentService.ask(paramDto.getInput());
+        return agentService.ask(paramDto.getConversationId(),paramDto.getInput());
     }
 
 
     @PostMapping("/document/ask")
     public String document(@RequestBody ParamDto paramDto) {
-        return agentService.ask(paramDto.getInput());
+        return agentService.ask(paramDto.getConversationId(),
+                paramDto.getInput());
     }
 
     @PostMapping("/memory/ask")
