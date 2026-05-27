@@ -27,7 +27,7 @@ public class AgentController {
 
     @PostMapping("/ask")
     public String ask(@RequestBody ParamDto paramDto) {
-        return agentService.ask(paramDto.getConversationId(),paramDto.getInput());
+        return agentService.handleMessage(paramDto.getInput(), paramDto.getConversationId());
     }
 
 

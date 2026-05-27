@@ -2,6 +2,7 @@ package com.agent.demo.service;
 
 import com.agent.demo.entity.ChatMessageEntity;
 import com.agent.demo.repository.ChatMessageRepository;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -13,13 +14,19 @@ public class MongoChatHistoryService {
 
     private final ChatMessageRepository repository;
 
-    public MongoChatHistoryService(ChatMessageRepository repository) {
+    private final ChatMemory chatMemory;
+
+
+    public MongoChatHistoryService(ChatMessageRepository repository,
+                                   ChatMemory chatMemory) {
         this.repository = repository;
+        this.chatMemory = chatMemory;
     }
 
     public void saveUserMessage(String conversationId, String content) {
         repository.save(new ChatMessageEntity(conversationId, "USER", content, Instant.now()));
     }
+
 
     public void saveAssistantMessage(String conversationId, String content) {
         repository.save(new ChatMessageEntity(conversationId, "ASSISTANT", content, Instant.now()));

@@ -1,7 +1,9 @@
 package com.agent.demo.service;
 
+import com.agent.demo.enumconstant.ToolType;
 import com.agent.demo.util.ApiTools;
 import com.agent.demo.util.FileTools;
+import com.agent.demo.util.McpToolExecutor;
 import com.agent.demo.util.NoteTools;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.tool.ToolCallback;
@@ -20,7 +22,15 @@ public class AgentService {
     private final ApiTools apiTools;
     private final FileTools fileTools;
 
+    private final ToolRouter toolRouter;
+
+    private final McpClient mcpClient;
+
+
     private final List<ToolCallback> mcpToolCallbacks;
+
+
+    private final McpToolExecutor mcpToolExecutor;
 
 
     public AgentService(ChatClient chatClient,
@@ -29,7 +39,10 @@ public class AgentService {
                         FileTools fileTools,
                         List<ToolCallback> mcpToolCallbacks,
                         McpDocumentService mcpDocumentService,
-                        McpHistoryService mcpHistoryService) {
+                        McpHistoryService mcpHistoryService,
+                        ToolRouter toolRouter,
+                        McpClient mcpClient,
+                        McpToolExecutor mcpToolExecutor) {
         this.chatClient = chatClient;
         this.noteTools = noteTools;
         this.apiTools = apiTools;
@@ -37,41 +50,86 @@ public class AgentService {
         this.mcpToolCallbacks = mcpToolCallbacks;
         this.mcpDocumentService = mcpDocumentService;
         this.mcpHistoryService = mcpHistoryService;
+        this.toolRouter = toolRouter;
+        this.mcpClient = mcpClient;
+        this.mcpToolExecutor = mcpToolExecutor;
     }
 
-    public String ask(String conversationId, String userMessage) {
+    public String ask(String conversationId, String message) {
 
-        String lower = userMessage.toLowerCase();
+        ToolType toolType = toolRouter.route(message);
 
-        // 🔥 MCP manual routing
-        if (lower.contains("history")) {
-            return mcpHistoryService.getConversationHistory(conversationId);
+        if (toolType == ToolType.GENERAL_CHAT) {
+            return chatClient.prompt()
+                    .user(message)
+                    .call()
+                    .content();
         }
 
-        if (lower.contains("document") || lower.contains("search")) {
-            return mcpDocumentService.searchDocument(conversationId, userMessage);
-        }
+        String toolResponse = mcpToolExecutor.execute(
+                toolType,
+                conversationId,
+                message
+        );
 
-        // fallback → normal LLM
         return chatClient.prompt()
-                .system("You are a helpful assistant.")
-                .user(userMessage)
+                .system("""
+                        You are an AI assistant.
+                        Use the MCP tool response to answer clearly.
+                        If the tool response is not enough, say that clearly.
+                        """)
+                .user("""
+                        User question:
+                        %s
+
+                        MCP tool response:
+                        %s
+                        """.formatted(message, toolResponse))
                 .call()
                 .content();
     }
 
 
-//    public String ask(String userMessage) {
-//        return chatClient.prompt()
-//            .system("""
-//                You are a helpful Spring Boot AI agent.
-//                Use tools when the user asks to save notes, read files, or fetch external API data.
-//                Do not invent tool results.
-//                """)
-//            .user(userMessage)
-//            .toolCallbacks(mcpToolCallbacks)
-//            .call()
-//            .content();
-//    }
+    public String handleMessage(String message, String conversationId) {
+        ToolType toolType = toolRouter.route(message);
+
+        return switch (toolType) {
+            case RAG_SEARCH -> {
+                String context = mcpClient.askRag(conversationId, message);
+                yield context;
+            }
+
+            case CONVERSATION_HISTORY -> {
+                String history = mcpClient.getConversationHistory(conversationId);
+                yield askLlmWithContext(message, history);
+            }
+
+            case GENERAL_CHAT -> chatClient
+                    .prompt()
+                    .user(message)
+                    .call()
+                    .content();
+        };
+    }
+
+    private String askLlmWithContext(String question, String context) {
+        return chatClient
+                .prompt()
+                .system("""
+                        You are an AI assistant.
+                        Use the provided context to answer the user.
+                        If the context is not enough, say that clearly.
+                        """)
+                .user("""
+                        Context:
+                        %s
+
+                        Question:
+                        %s
+                        """.formatted(context, question))
+                .call()
+                .content();
+    }
+
 
 }
