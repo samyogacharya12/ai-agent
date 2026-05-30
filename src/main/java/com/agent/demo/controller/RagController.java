@@ -32,17 +32,17 @@ public class RagController {
         return ragDocumentService.ingestDocument(request.filePath());
     }
 
-    @PostMapping("/ask")
-    public String ask(@RequestBody ParamDto request) {
-        return ragService.
-            ask(request.getConversationId(),
-                request.getQuestion());
-    }
+//    @PostMapping("/ask")
+//    public String ask(@RequestBody ParamDto request) {
+//        return ragService.
+//            ask(request.getConversationId(),
+//                request.getQuestion());
+//    }
 
-    @PostMapping("/ask-debug")
-    public RagService.RagDebugResponse askDebug(@RequestBody AskRequest request) {
-        return ragService.askWithDebug(request.conversationId(), request.question());
-    }
+//    @PostMapping("/ask-debug")
+//    public RagService.RagDebugResponse askDebug(@RequestBody AskRequest request) {
+//        return ragService.askWithDebug(request.conversationId(), request.question());
+//    }
 
     @GetMapping("/history/{conversationId}")
     public Object history(@PathVariable String conversationId) {

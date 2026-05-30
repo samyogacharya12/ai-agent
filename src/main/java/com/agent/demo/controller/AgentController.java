@@ -1,6 +1,6 @@
 package com.agent.demo.controller;
 
-import com.agent.demo.dto.AgentResponse;
+
 import com.agent.demo.dto.ParamDto;
 
 import com.agent.demo.service.AgentService;
@@ -27,7 +27,10 @@ public class AgentController {
 
     @PostMapping("/ask")
     public String ask(@RequestBody ParamDto paramDto) {
-        return agentService.handleMessage(paramDto.getInput(), paramDto.getConversationId());
+        return coordinatorAgent.run(
+                paramDto.getConversationId(),
+                paramDto.getInput()
+        );
     }
 
 
