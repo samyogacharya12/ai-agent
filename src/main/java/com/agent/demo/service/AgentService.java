@@ -30,6 +30,9 @@ public class AgentService {
     private final List<ToolCallback> mcpToolCallbacks;
 
 
+    private final ToolExecutionLogService toolExecutionLogService;
+
+
     private final McpToolExecutor mcpToolExecutor;
 
 
@@ -42,7 +45,8 @@ public class AgentService {
                         McpHistoryService mcpHistoryService,
                         ToolRouter toolRouter,
                         McpClient mcpClient,
-                        McpToolExecutor mcpToolExecutor) {
+                        McpToolExecutor mcpToolExecutor,
+                        ToolExecutionLogService toolExecutionLogService) {
         this.chatClient = chatClient;
         this.noteTools = noteTools;
         this.apiTools = apiTools;
@@ -53,6 +57,7 @@ public class AgentService {
         this.toolRouter = toolRouter;
         this.mcpClient = mcpClient;
         this.mcpToolExecutor = mcpToolExecutor;
+        this.toolExecutionLogService = toolExecutionLogService;
     }
 
     public String ask(String conversationId, String message) {

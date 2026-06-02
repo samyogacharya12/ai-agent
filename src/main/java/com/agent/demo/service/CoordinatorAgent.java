@@ -13,13 +13,18 @@ public class CoordinatorAgent {
 
     private final MongoChatHistoryService mongoChatHistoryService;
 
+    private final ToolBasedService toolBasedService;
+
+
     public CoordinatorAgent(ChatClient.Builder chatClientBuilder,
                             ToolCallbackProvider toolCallbackProvider,
-                            MongoChatHistoryService mongoChatHistoryService) {
+                            MongoChatHistoryService mongoChatHistoryService,
+                            ToolBasedService toolBasedService) {
         this.chatClient = chatClientBuilder
                 .defaultToolCallbacks(toolCallbackProvider)
                 .build();
         this.mongoChatHistoryService = mongoChatHistoryService;
+        this.toolBasedService = toolBasedService;
     }
 
 
@@ -31,6 +36,27 @@ public class CoordinatorAgent {
         String memory =
                 mongoChatHistoryService.loadMemory(conversationId);
 
+
+
+        String toolResult = "No tool used";
+
+
+        // Simple tool routing logic
+        if(
+                question.toLowerCase().contains("search")
+                        ||
+                        question.toLowerCase().contains("document")
+                        ||
+                        question.toLowerCase().contains("knowledge")
+        ){
+
+            toolResult =
+                    toolBasedService
+                            .searchKnowledgeBase(
+                                    conversationId,
+                                    question
+                            );
+        }
 
         String response =
                 chatClient.prompt()
@@ -45,7 +71,7 @@ public class CoordinatorAgent {
                                 1. Use memory when useful.
                                 2. Use MCP tools for document questions.
                                 3. Never hallucinate.
-                                """.formatted(memory))
+                                """.formatted(memory, toolResult))
 
 
                         .user(question)
