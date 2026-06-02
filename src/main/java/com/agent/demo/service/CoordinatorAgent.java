@@ -1,7 +1,9 @@
 package com.agent.demo.service;
 
 
+import com.agent.demo.enumconstant.ChatRole;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -9,29 +11,91 @@ public class CoordinatorAgent {
 
     private final ChatClient chatClient;
 
-    public CoordinatorAgent(ChatClient.Builder chatClientBuilder) {
-        this.chatClient = chatClientBuilder.build();
+    private final MongoChatHistoryService mongoChatHistoryService;
+
+    private final ToolBasedService toolBasedService;
+
+
+    public CoordinatorAgent(ChatClient.Builder chatClientBuilder,
+                            ToolCallbackProvider toolCallbackProvider,
+                            MongoChatHistoryService mongoChatHistoryService,
+                            ToolBasedService toolBasedService) {
+        this.chatClient = chatClientBuilder
+                .defaultToolCallbacks(toolCallbackProvider)
+                .build();
+        this.mongoChatHistoryService = mongoChatHistoryService;
+        this.toolBasedService = toolBasedService;
     }
 
 
-    public String run(String conversationId, String question) {
+    public String run(
+            String conversationId,
+            String question
+    ) {
 
-        return chatClient.prompt()
-                .system("""
-                        You are a coordinator agent.
+        String memory =
+                mongoChatHistoryService.loadMemory(conversationId);
 
-                        Your job:
-                        1. Understand the user's question.
-                        2. If the question needs document knowledge, use the available MCP tool search_knowledge_base.
-                        3. Use the returned context to answer clearly.
-                        4. Do not make up information if the tool does not return relevant context.
-                        """)
-                .user("""
-                        Conversation ID: %s
 
-                        User question: %s
-                        """.formatted(conversationId, question))
-                .call()
-                .content();
+
+        String toolResult = "No tool used";
+
+
+        // Simple tool routing logic
+        if(
+                question.toLowerCase().contains("search")
+                        ||
+                        question.toLowerCase().contains("document")
+                        ||
+                        question.toLowerCase().contains("knowledge")
+        ){
+
+            toolResult =
+                    toolBasedService
+                            .searchKnowledgeBase(
+                                    conversationId,
+                                    question
+                            );
+        }
+
+        String response =
+                chatClient.prompt()
+
+                        .system("""
+                                You are an AI assistant.
+                                
+                                Previous conversation:
+                                %s
+                                
+                                Rules:
+                                1. Use memory when useful.
+                                2. Use MCP tools for document questions.
+                                3. Never hallucinate.
+                                """.formatted(memory, toolResult))
+
+
+                        .user(question)
+
+                        .call()
+
+                        .content();
+
+
+        mongoChatHistoryService.saveMessage(
+                conversationId,
+                ChatRole.USER,
+                question
+        );
+
+
+        mongoChatHistoryService.saveMessage(
+                conversationId,
+                ChatRole.ASSISTANT,
+                response
+        );
+
+
+        return response;
+
     }
 }

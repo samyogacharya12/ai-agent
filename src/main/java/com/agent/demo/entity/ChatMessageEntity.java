@@ -1,10 +1,12 @@
 package com.agent.demo.entity;
 
+import com.agent.demo.enumconstant.ChatRole;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import javax.management.relation.Role;
 import java.time.Instant;
 
 @Document(collection = "chat_history")
@@ -17,13 +19,14 @@ public class ChatMessageEntity {
     @Indexed
     private String conversationId;
 
-    private String role;
+
+    private ChatRole role;
     private String content;
     private Instant createdAt;
 
 
     public ChatMessageEntity(String conversationId,
-                             String role,
+                             ChatRole role,
                              String content,
                              Instant createdAt){
         this.conversationId=conversationId;

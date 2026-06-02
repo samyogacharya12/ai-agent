@@ -9,7 +9,7 @@ spring:
 
             chat:
                 options:
-                    model: smollm2:360m-instruct-q4_K_M
+                    model: llama3.1:8b
                     temperature: 0.2
 
             embedding:
