@@ -1,6 +1,8 @@
 package com.agent.demo.service;
 
 
+import com.agent.demo.dto.AgentResponse;
+import com.agent.demo.dto.ToolDecision;
 import com.agent.demo.enumconstant.ChatRole;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.tool.ToolCallbackProvider;
@@ -16,19 +18,27 @@ public class CoordinatorAgent {
     private final ToolBasedService toolBasedService;
 
 
+    private final ToolRouter toolRouterAgent;
+
+    private final  AgentDecisionService agentDecisionService;
+
     public CoordinatorAgent(ChatClient.Builder chatClientBuilder,
                             ToolCallbackProvider toolCallbackProvider,
                             MongoChatHistoryService mongoChatHistoryService,
-                            ToolBasedService toolBasedService) {
+                            ToolBasedService toolBasedService,
+                            ToolRouter toolRouterAgent,
+                            AgentDecisionService agentDecisionService) {
         this.chatClient = chatClientBuilder
                 .defaultToolCallbacks(toolCallbackProvider)
                 .build();
         this.mongoChatHistoryService = mongoChatHistoryService;
         this.toolBasedService = toolBasedService;
+        this.toolRouterAgent = toolRouterAgent;
+        this.agentDecisionService = agentDecisionService;
     }
 
 
-    public String run(
+    public AgentResponse run(
             String conversationId,
             String question
     ) {
@@ -41,22 +51,34 @@ public class CoordinatorAgent {
         String toolResult = "No tool used";
 
 
-        // Simple tool routing logic
-        if(
-                question.toLowerCase().contains("search")
-                        ||
-                        question.toLowerCase().contains("document")
-                        ||
-                        question.toLowerCase().contains("knowledge")
-        ){
+        ToolDecision decision =
+                toolRouterAgent.decide(question);
 
-            toolResult =
-                    toolBasedService
-                            .searchKnowledgeBase(
-                                    conversationId,
-                                    question
-                            );
+        agentDecisionService.saveDecision(
+                conversationId,
+                question,
+                decision
+        );
+
+        switch(decision.tool()) {
+
+
+            case KNOWLEDGE_SEARCH ->
+
+                    toolResult =
+                            toolBasedService
+                                    .searchKnowledgeBase(
+                                            conversationId,
+                                            question
+                                    );
+
+
+            case NONE ->
+
+                    toolResult =
+                            "No tool needed";
         }
+
 
         String response =
                 chatClient.prompt()
@@ -95,7 +117,11 @@ public class CoordinatorAgent {
         );
 
 
-        return response;
+        return new AgentResponse(
+                decision.tool(),
+                response,
+                decision.reason()
+        );
 
     }
 }

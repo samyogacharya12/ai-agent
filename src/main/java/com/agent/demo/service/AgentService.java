@@ -95,27 +95,27 @@ public class AgentService {
     }
 
 
-    public String handleMessage(String message, String conversationId) {
-        ToolType toolType = toolRouter.route(message);
-
-        return switch (toolType) {
-            case RAG_SEARCH -> {
-                String context = mcpClient.askRag(conversationId, message);
-                yield context;
-            }
-
-            case CONVERSATION_HISTORY -> {
-                String history = mcpClient.getConversationHistory(conversationId);
-                yield askLlmWithContext(message, history);
-            }
-
-            case GENERAL_CHAT -> chatClient
-                    .prompt()
-                    .user(message)
-                    .call()
-                    .content();
-        };
-    }
+//    public String handleMessage(String message, String conversationId) {
+//        ToolType toolType = toolRouter.route(message);
+//
+//        return switch (toolType) {
+//            case RAG_SEARCH -> {
+//                String context = mcpClient.askRag(conversationId, message);
+//                yield context;
+//            }
+//
+//            case CONVERSATION_HISTORY -> {
+//                String history = mcpClient.getConversationHistory(conversationId);
+//                yield askLlmWithContext(message, history);
+//            }
+//
+//            case GENERAL_CHAT -> chatClient
+//                    .prompt()
+//                    .user(message)
+//                    .call()
+//                    .content();
+//        };
+//    }
 
     private String askLlmWithContext(String question, String context) {
         return chatClient
