@@ -18,15 +18,11 @@ public class ChatController {
     @PostMapping
     public AgentResponse ask(@RequestBody ParamDto request) {
 
-        String answer = coordinatorAgent.run(
+        return coordinatorAgent.run(
                 request.getConversationId(),
                 request.getQuestion()
         );
 
-        return new AgentResponse(
-                request.getConversationId(),
-                answer
-        );
     }
 
 }
