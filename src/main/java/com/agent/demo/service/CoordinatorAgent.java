@@ -22,12 +22,15 @@ public class CoordinatorAgent {
 
     private final  AgentDecisionService agentDecisionService;
 
+    private final ChatAgent chatAgent;
+
     public CoordinatorAgent(ChatClient.Builder chatClientBuilder,
                             ToolCallbackProvider toolCallbackProvider,
                             MongoChatHistoryService mongoChatHistoryService,
                             ToolBasedService toolBasedService,
                             ToolRouter toolRouterAgent,
-                            AgentDecisionService agentDecisionService) {
+                            AgentDecisionService agentDecisionService,
+                            ChatAgent chatAgent) {
         this.chatClient = chatClientBuilder
                 .defaultToolCallbacks(toolCallbackProvider)
                 .build();
@@ -35,6 +38,7 @@ public class CoordinatorAgent {
         this.toolBasedService = toolBasedService;
         this.toolRouterAgent = toolRouterAgent;
         this.agentDecisionService = agentDecisionService;
+        this.chatAgent = chatAgent;
     }
 
 
@@ -74,9 +78,7 @@ public class CoordinatorAgent {
 
 
             case NONE ->
-
-                    toolResult =
-                            "No tool needed";
+                    chatAgent.execute(conversationId, question);
         }
 
 

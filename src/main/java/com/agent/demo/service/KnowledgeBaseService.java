@@ -13,9 +13,12 @@ public class KnowledgeBaseService {
 
     private final VectorStore vectorStore;
 
+
     public KnowledgeBaseService(VectorStore vectorStore) {
         this.vectorStore = vectorStore;
     }
+
+
 
     public String search(String question) {
 
@@ -68,6 +71,4 @@ public class KnowledgeBaseService {
                 .map(Document::getText)
                 .collect(Collectors.joining("\n\n"));
     }
-
-
 }
