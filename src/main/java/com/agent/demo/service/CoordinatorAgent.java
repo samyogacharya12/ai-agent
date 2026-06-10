@@ -17,10 +17,12 @@ public class CoordinatorAgent {
 
     private final ToolBasedService toolBasedService;
 
+    private final SharedToolService sharedToolService;
+
 
     private final ToolRouter toolRouterAgent;
 
-    private final  AgentDecisionService agentDecisionService;
+    private final AgentDecisionService agentDecisionService;
 
     private final ChatAgent chatAgent;
 
@@ -30,7 +32,8 @@ public class CoordinatorAgent {
                             ToolBasedService toolBasedService,
                             ToolRouter toolRouterAgent,
                             AgentDecisionService agentDecisionService,
-                            ChatAgent chatAgent) {
+                            ChatAgent chatAgent,
+                            SharedToolService sharedToolService) {
         this.chatClient = chatClientBuilder
                 .defaultToolCallbacks(toolCallbackProvider)
                 .build();
@@ -39,6 +42,7 @@ public class CoordinatorAgent {
         this.toolRouterAgent = toolRouterAgent;
         this.agentDecisionService = agentDecisionService;
         this.chatAgent = chatAgent;
+        this.sharedToolService = sharedToolService;
     }
 
 
@@ -50,11 +54,6 @@ public class CoordinatorAgent {
         String memory =
                 mongoChatHistoryService.loadMemory(conversationId);
 
-
-
-        String toolResult = "No tool used";
-
-
         ToolDecision decision =
                 toolRouterAgent.decide(question);
 
@@ -64,46 +63,33 @@ public class CoordinatorAgent {
                 decision
         );
 
-        switch(decision.tool()) {
-
-
-            case KNOWLEDGE_SEARCH ->
-
-                    toolResult =
-                            toolBasedService
-                                    .searchKnowledgeBase(
-                                            conversationId,
-                                            question
-                                    );
-
-
-            case NONE ->
-                    chatAgent.execute(conversationId, question);
-        }
-
+        String toolResult =
+                sharedToolService.executeTool(
+                        decision.tool(),
+                        question
+                );
 
         String response =
                 chatClient.prompt()
-
                         .system("""
-                                You are an AI assistant.
-                                
-                                Previous conversation:
-                                %s
-                                
-                                Rules:
-                                1. Use memory when useful.
-                                2. Use MCP tools for document questions.
-                                3. Never hallucinate.
-                                """.formatted(memory, toolResult))
+                        You are an AI assistant.
 
+                        Previous conversation:
+                        %s
 
+                        Knowledge/tool result already retrieved:
+                        %s
+
+                        Rules:
+                        1. Do not output tool calls.
+                        2. Do not say you will search.
+                        3. Use the provided tool result to answer the user.
+                        4. If the tool result says "No matching knowledge found", say you do not know from the uploaded knowledge.
+                        5. Answer in normal human language.
+                        """.formatted(memory, toolResult))
                         .user(question)
-
                         .call()
-
                         .content();
-
 
         mongoChatHistoryService.saveMessage(
                 conversationId,
@@ -111,19 +97,16 @@ public class CoordinatorAgent {
                 question
         );
 
-
         mongoChatHistoryService.saveMessage(
                 conversationId,
                 ChatRole.ASSISTANT,
                 response
         );
 
-
         return new AgentResponse(
                 decision.tool(),
                 response,
                 decision.reason()
         );
-
     }
 }

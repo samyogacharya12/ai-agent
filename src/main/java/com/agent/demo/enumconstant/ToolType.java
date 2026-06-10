@@ -9,5 +9,6 @@ public enum ToolType {
     DATABASE_QUERY,
     EMAIL,
     CALENDAR,
+    WEATHER_SEARCH,
     NONE
 }
