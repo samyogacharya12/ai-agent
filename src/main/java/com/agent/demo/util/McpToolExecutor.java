@@ -58,6 +58,8 @@ public class McpToolExecutor {
             case NONE ->
                     "";
 
+            default -> "default";
+
         };
     }
 

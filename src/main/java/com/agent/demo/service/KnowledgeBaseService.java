@@ -1,15 +1,16 @@
 package com.agent.demo.service;
 
+import com.agent.demo.enumconstant.ToolType;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class KnowledgeBaseService {
-
 
     private final VectorStore vectorStore;
 
@@ -19,6 +20,10 @@ public class KnowledgeBaseService {
     }
 
 
+
+    public String searchKnowledgeBase(String question) {
+        return retrieveRelevantChunks(question);
+    }
 
     public String search(String question) {
 
@@ -61,14 +66,24 @@ public class KnowledgeBaseService {
     }
 
     public String retrieveRelevantChunks(String question) {
-        SearchRequest searchRequest = SearchRequest.builder()
+        SearchRequest request = SearchRequest.builder()
                 .query(question)
-                .topK(5)
+                .topK(3)
+                .similarityThreshold(0.3)
                 .build();
 
-        return vectorStore.similaritySearch(searchRequest)
-                .stream()
+        List<Document> documents =
+                vectorStore.similaritySearch(request);
+
+        System.out.println("Question: " + question);
+        System.out.println("Documents found: " + documents.size());
+
+        if (documents.isEmpty()) {
+            return "No matching knowledge found.";
+        }
+
+        return documents.stream()
                 .map(Document::getText)
-                .collect(Collectors.joining("\n\n"));
+                .collect(Collectors.joining("\n"));
     }
 }
