@@ -6,10 +6,13 @@ import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class RagDocumentService {
@@ -20,19 +23,27 @@ public class RagDocumentService {
         this.vectorStore = vectorStore;
     }
 
-    public String ingestDocument(String filePath) {
+    public String ingestDocument(MultipartFile file) {
         try {
-            Path path = Path.of(filePath).normalize();
 
-            if (!Files.exists(path)) {
-                return "File not found: " + filePath;
-            }
+            String content = new String(
+                    file.getBytes(),
+                    StandardCharsets.UTF_8
+            );
 
-            if (!Files.isRegularFile(path)) {
-                return "Path is not a regular file: " + filePath;
-            }
+            Document document = new Document(
+                    content,
+                    Map.of(
+                            "filename", file.getOriginalFilename(),
+                            "source", "upload"
+                    )
+            );
 
-            TikaDocumentReader reader = new TikaDocumentReader(new FileSystemResource(path));
+            vectorStore.add(List.of(document));
+
+            System.out.println("Document saved into pgvector.");
+
+            TikaDocumentReader reader = new TikaDocumentReader(file.getResource());
             List<Document> documents = reader.read();
 
             TokenTextSplitter splitter = TokenTextSplitter.builder()
@@ -46,8 +57,7 @@ public class RagDocumentService {
             List<Document> chunks = splitter.apply(documents);
 
             for (Document chunk : chunks) {
-                chunk.getMetadata().put("source", path.getFileName().toString());
-                chunk.getMetadata().put("path", path.toString());
+                chunk.getMetadata().put("source", file.getName());
             }
 
             vectorStore.add(chunks);

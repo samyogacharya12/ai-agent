@@ -6,6 +6,7 @@ import com.agent.demo.service.MongoChatHistoryService;
 import com.agent.demo.service.RagDocumentService;
 import com.agent.demo.service.RagService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotNull;
 
@@ -28,8 +29,8 @@ public class RagController {
     }
 
     @PostMapping("/ingest")
-    public String ingest(@RequestBody IngestRequest request) {
-        return ragDocumentService.ingestDocument(request.filePath());
+    public String ingest(@RequestParam MultipartFile file) {
+        return ragDocumentService.ingestDocument(file);
     }
 
 //    @PostMapping("/ask")
