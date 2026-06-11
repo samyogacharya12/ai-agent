@@ -3,8 +3,10 @@ package com.agent.demo.service;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
+import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,11 +21,15 @@ public class RagDocumentService {
 
     private final VectorStore vectorStore;
 
-    public RagDocumentService(VectorStore vectorStore) {
+    private final DocumentIngestionService documentIngestionService;
+
+    public RagDocumentService(VectorStore vectorStore,
+                              DocumentIngestionService documentIngestionService) {
         this.vectorStore = vectorStore;
+        this.documentIngestionService = documentIngestionService;
     }
 
-    public String ingestDocument(MultipartFile file) {
+    public String ingestDocument(MultipartFile file, String conversationId) {
         try {
 
             String content = new String(
@@ -43,6 +49,17 @@ public class RagDocumentService {
 
             System.out.println("Document saved into pgvector.");
 
+            // 1. Check duplicate document
+            boolean exists =
+                    documentIngestionService.documentExists(file.getName(),
+                            conversationId);
+
+
+            if (exists) {
+
+                return "Document already uploaded.";
+            }
+
             TikaDocumentReader reader = new TikaDocumentReader(file.getResource());
             List<Document> documents = reader.read();
 
@@ -58,6 +75,8 @@ public class RagDocumentService {
 
             for (Document chunk : chunks) {
                 chunk.getMetadata().put("source", file.getName());
+                chunk.getMetadata().put("type", "upload");
+                chunk.getMetadata().put("conversationId", conversationId);
             }
 
             vectorStore.add(chunks);

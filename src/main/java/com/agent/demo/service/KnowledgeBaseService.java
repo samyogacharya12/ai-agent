@@ -21,8 +21,8 @@ public class KnowledgeBaseService {
 
 
 
-    public String searchKnowledgeBase(String question) {
-        return retrieveRelevantChunks(question);
+    public String searchKnowledgeBase(String question, String conversationId) {
+        return retrieveRelevantChunks(question, conversationId);
     }
 
     public String search(String question) {
@@ -65,11 +65,16 @@ public class KnowledgeBaseService {
                 """;
     }
 
-    public String retrieveRelevantChunks(String question) {
+    public String retrieveRelevantChunks(String question,String conversationId) {
         SearchRequest request = SearchRequest.builder()
                 .query(question)
                 .topK(3)
                 .similarityThreshold(0.3)
+                .filterExpression(
+                        "conversationId == '"
+                                + conversationId
+                                + "'"
+                )
                 .build();
 
         List<Document> documents =

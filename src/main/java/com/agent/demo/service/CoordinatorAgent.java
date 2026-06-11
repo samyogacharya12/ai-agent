@@ -5,7 +5,6 @@ import com.agent.demo.dto.AgentResponse;
 import com.agent.demo.dto.ToolDecision;
 import com.agent.demo.enumconstant.ChatRole;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,7 +14,6 @@ public class CoordinatorAgent {
 
     private final MongoChatHistoryService mongoChatHistoryService;
 
-    private final ToolBasedService toolBasedService;
 
     private final SharedToolService sharedToolService;
 
@@ -24,24 +22,17 @@ public class CoordinatorAgent {
 
     private final AgentDecisionService agentDecisionService;
 
-    private final ChatAgent chatAgent;
 
     public CoordinatorAgent(ChatClient.Builder chatClientBuilder,
-                            ToolCallbackProvider toolCallbackProvider,
                             MongoChatHistoryService mongoChatHistoryService,
-                            ToolBasedService toolBasedService,
                             ToolRouter toolRouterAgent,
                             AgentDecisionService agentDecisionService,
-                            ChatAgent chatAgent,
                             SharedToolService sharedToolService) {
         this.chatClient = chatClientBuilder
-                .defaultToolCallbacks(toolCallbackProvider)
                 .build();
         this.mongoChatHistoryService = mongoChatHistoryService;
-        this.toolBasedService = toolBasedService;
         this.toolRouterAgent = toolRouterAgent;
         this.agentDecisionService = agentDecisionService;
-        this.chatAgent = chatAgent;
         this.sharedToolService = sharedToolService;
     }
 
@@ -66,7 +57,8 @@ public class CoordinatorAgent {
         String toolResult =
                 sharedToolService.executeTool(
                         decision.tool(),
-                        question
+                        question,
+                        conversationId
                 );
 
         String response =

@@ -29,8 +29,9 @@ public class RagController {
     }
 
     @PostMapping("/ingest")
-    public String ingest(@RequestParam MultipartFile file) {
-        return ragDocumentService.ingestDocument(file);
+    public String ingest(@RequestParam MultipartFile file,
+                         @RequestParam String conversationId) {
+        return ragDocumentService.ingestDocument(file, conversationId);
     }
 
 //    @PostMapping("/ask")

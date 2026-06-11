@@ -19,7 +19,8 @@ public class KnowledgeAgent implements Agent{
         String result =
                 sharedToolService.executeTool(
                         ToolType.KNOWLEDGE_SEARCH,
-                        input
+                        input,
+                        conversationId
                 );
 
 

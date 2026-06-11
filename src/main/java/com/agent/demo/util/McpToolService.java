@@ -12,8 +12,8 @@ public class McpToolService {
         this.knowledgeBaseService = knowledgeBaseService;
     }
 
-    public String searchKnowledgeBase(String question) {
-        return knowledgeBaseService.retrieveRelevantChunks(question);
+    public String searchKnowledgeBase(String question, String conversationId) {
+        return knowledgeBaseService.retrieveRelevantChunks(question,conversationId);
     }
 
 

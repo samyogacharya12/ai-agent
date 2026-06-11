@@ -14,11 +14,12 @@ public class SharedToolService {
 
     public String executeTool(
             ToolType toolType,
-            String question
+            String question,
+            String conversationId
     ) {
         return switch (toolType) {
             case KNOWLEDGE_SEARCH ->
-                    knowledgeBaseService.searchKnowledgeBase(question);
+                    knowledgeBaseService.searchKnowledgeBase(question,conversationId);
 
             case WEATHER_SEARCH ->
                     "Weather tool is not implemented yet.";
